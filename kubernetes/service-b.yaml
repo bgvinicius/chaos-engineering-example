@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-b-deployment
+  namespace: services
+  labels:
+    app: service-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-b
+  template:
+    metadata:
+      labels:
+        app: service-b
+    spec:
+      containers:
+        - name: service-b-container
+          image: ghcr.io/bgvinicius/service-b
+          envFrom:
+            - configMapRef:
+                name: service-b-configmap
+          ports:
+            - containerPort: 8080
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: service-b-svc
+  namespace: services
+  labels:
+    app: service-b
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30002
+  selector:
+    app: service-b
+  type: NodePort
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: service-b-configmap
+  namespace: services
+data:
+  server.port: '8080'
